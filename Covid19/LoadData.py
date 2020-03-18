@@ -77,6 +77,7 @@ class Covid:
         for i in range(self.count):
             index = i+1
             _head = inputData[0][1]
+            self.head = _head
             _name = inputData[0][index][:2]
             _confirmed = self.toIntData(inputData[0][index][4:])
             _deaths = self.toIntData(inputData[1][index][4:])
@@ -123,7 +124,19 @@ class Covid:
                 print(country.name)
 
     def createEurope(self):
-        pass
+        _len = len(self.areas[0].confirmed)
+        _confirmed = [0] * _len
+        _deaths = [0] * _len
+        _recovered = [0] * _len
+        for i in range(self.count):
+            if self.europe in self.areas[i].attributes:
+                _confirmed = [x + y for x, y in zip(_confirmed, self.areas[i].confirmed)]
+                _deaths = [x + y for x, y in zip(_deaths, self.areas[i].deaths)]
+                _recovered = [x + y for x, y in zip(_recovered, self.areas[i].recovered)]
+        area = Area(self.europe, self.head, _confirmed, _deaths, _recovered)
+        area.attributes.append("Continent")
+        self._list([area])
+        self.areas.append(area)
 
 
     def getEurope(self):
@@ -136,9 +149,9 @@ w = Covid(data)
 # w.printList()
 
 #print(w.list())
-poland = w.getArea("United Kingdom")[0]
-print(poland.latitude)
-
+country = w.getArea("Italy")[0]
+print(country.name + ": " + str(country.confirmed))
+w.createEurope()
 # area = "United Kingdom"
 # print(area in europeList)
 # print(area in europeList or f"{area}, {area}" in europeList)
