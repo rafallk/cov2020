@@ -252,10 +252,13 @@ class Covid:
         self._list(result)
 
 ########################################################################################################################
+
+
 w = Covid(data)
 w.createEurope()
 w.createRegion("China")
 w.createRegion("US")
+w.createRegion("Canada")
 w.plotAreasPercent(["Poland", "Germany", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
 w.plotAreas(["Poland", "Germany", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
 w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,"])
