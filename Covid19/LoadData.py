@@ -165,6 +165,7 @@ class Covid:
             try:
                 area_buf = list(filter(lambda x: name is x.name, self.areas))[0]
             except:
+                print(f"exception in {name}")
                 area_buf = list(filter(lambda x: name in x.name, self.areas))[0]
 
             plt.subplot(int(f"{v}{h}{i}"))
@@ -173,7 +174,7 @@ class Covid:
             plt.plot(range(len(area_buf.date)), [area_buf.deaths[key] for key in area_buf.date], label="deaths")
             plt.plot(range(len(area_buf.date)), [area_buf.active[key] for key in area_buf.date], label="active")
             plt.ylabel("people")
-            plt.title(name)
+            plt.title(area_buf.name)
             i += 1
         plt.legend()
         plt.show()
@@ -257,6 +258,7 @@ w.createRegion("China")
 w.createRegion("US")
 w.plotAreasPercent(["Poland", "Germany", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
 w.plotAreas(["Poland", "Germany", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
+w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,"])
 
 
 Poland = w.getArea("Poland")
