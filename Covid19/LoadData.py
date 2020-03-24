@@ -155,43 +155,39 @@ class Covid:
         plt.plot(range(len(area_buf.date)), [area_buf.active[key] for key in area_buf.date])
         plt.show()
 
-    def plotAreas(self, names):
-        count = len(names)
-        h = math.ceil(math.sqrt(count))
-        v = math.ceil(count/h)
-        i = 1
+    def plotAreas(self, names, allIncluded=False, maxSubplots=9, ppm=False):
+        if allIncluded:
+            name = names if isinstance(names, str) else names[0]
+            names = [y.name for y in filter(lambda x: name in x.name, self.areas)]
 
+        ms = maxSubplots
+        count = len(names)
+        _iter = math.floor(count/ms)
+        _iter = (_iter * [ms]) + [count % ms]
+
+        i = ms + 1
+        j = 0
         for name in names:
-            try:
-                area_buf = list(filter(lambda x: name is x.name, self.areas))[0]
+            if i > ms:
+                count = _iter[j]
+                h = math.ceil(math.sqrt(count))
+                v = math.ceil(count / h)
+                i = 1
+                j += 1
+                if j > 1:
+                    plt.legend()
+                    plt.show()
+            pop = 1
+            ylabel = "People"
+            if ppm:
+                popName = name[:-1] if name[-1] == "," else name
+                popName = "United States" if popName == "US" else popName
+                pop = list(filter(lambda x: popName in x.name, self.population))[0].population / 1000000
+                ylabel = "People per million"
+
+            try: area_buf = list(filter(lambda x: name is x.name, self.areas))[0]
             except:
                 print(f"exception in {name}")
-                area_buf = list(filter(lambda x: name in x.name, self.areas))[0]
-
-            plt.subplot(int(f"{v}{h}{i}"))
-            plt.plot(range(len(area_buf.date)), [area_buf.confirmed[key] for key in area_buf.date], label="confirmed")
-            plt.plot(range(len(area_buf.date)), [area_buf.recovered[key] for key in area_buf.date], label="recovered")
-            plt.plot(range(len(area_buf.date)), [area_buf.deaths[key] for key in area_buf.date], label="deaths")
-            plt.plot(range(len(area_buf.date)), [area_buf.active[key] for key in area_buf.date], label="active")
-            plt.ylabel("people")
-            plt.title(area_buf.name)
-            i += 1
-        plt.legend()
-        plt.show()
-
-    def plotAreasPercent(self, names):
-        count = len(names)
-        h = math.ceil(math.sqrt(count))
-        v = math.ceil(count/h)
-        i = 1
-
-        for name in names:
-            popName = name[:-1] if name[-1] == "," else name
-            popName = "United States" if popName == "US" else popName
-            pop = list(filter(lambda x: popName in x.name, self.population))[0].population/1000000
-            try:
-                area_buf = list(filter(lambda x: name is x.name, self.areas))[0]
-            except:
                 area_buf = list(filter(lambda x: name in x.name, self.areas))[0]
 
             plt.subplot(int(f"{v}{h}{i}"))
@@ -199,11 +195,16 @@ class Covid:
             plt.plot(range(len(area_buf.date)), [area_buf.recovered[key]/pop for key in area_buf.date], label="recovered")
             plt.plot(range(len(area_buf.date)), [area_buf.deaths[key]/pop for key in area_buf.date], label="deaths")
             plt.plot(range(len(area_buf.date)), [area_buf.active[key]/pop for key in area_buf.date], label="active")
-            plt.ylabel("People per million")
-            plt.title(name)
+            plt.ylabel(ylabel)
+            plt.title(area_buf.name)
             i += 1
         plt.legend()
         plt.show()
+
+    def plotAreasPercent(self, names, allIncluded=False, maxSubplots=9, ):
+        self.plotAreas(names, allIncluded, maxSubplots, True)
+
+
 
     def joinAreaNames(self, _list):
         ret = ""
@@ -259,10 +260,12 @@ w.createEurope()
 w.createRegion("China")
 w.createRegion("US")
 w.createRegion("Canada")
-w.plotAreasPercent(["Poland", "Germany", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
-w.plotAreas(["Poland", "Germany", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
-w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,"])
-
+w.plotAreas("China", True, 6)
+w.plotAreasPercent(["Poland", "Switzerland", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China",
+                    "China"], maxSubplots=6)
+w.plotAreas(["Poland", "Switzerland", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
+w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,",
+             "China"])
 
 Poland = w.getArea("Poland")
 print(Poland.name + ": " + str(Poland.active))
