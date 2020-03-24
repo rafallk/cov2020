@@ -64,7 +64,9 @@ class Population:
 
 class Area:
 
-    def __init__(self, _name, head, _confirmed, _deaths, _recovered):
+    def __init__(self, _name, head, _confirmed, _deaths, _recovered, regionCount):
+        x = [y[regionCount-1 if regionCount > 1 else 0:regionCount+1 if len(y) - regionCount > 1 else regionCount] for y in data]
+        self.id = regionCount
         self.name = f"{_name[0]}, {_name[1]}" if _name[0] != "" else _name[1]
         self.name = _name if isinstance(_name, str) else self.name
         self.date = head[4:]
@@ -97,21 +99,23 @@ class Covid:
     europe = "Europe"
 
     def __init__(self, inputData):
+        self.regionCount = 0
         self.population = []
         self.areas = []
         self.filtered = []
-        self.count = len(inputData[0])-1
+        self.count = len(inputData[0])-2
         self.head = inputData[0][0]
         self.date = self.head[4:]
         self.calcPopulation()
-        for i in range(1, self.count+1):
+        for i in range(1, self.count):
             _name = inputData[0][i][:2]
             _confirmed = self.toIntData(self.date, inputData[0][i][4:])
             _deaths = self.toIntData(self.date, inputData[1][i][4:])
             _recovered = self.toIntData(self.date, inputData[2][i][4:])
-            area = Area(_name, self.head, _confirmed, _deaths, _recovered)
+            area = Area(_name, self.head, _confirmed, _deaths, _recovered, self.regionCount)
             area.MarkAsEurope(area.name, europeList, self.europe)
             self.areas.append(area)
+            self.regionCount += 1
 
     def calcPopulation(self):
         for region in population:
@@ -124,7 +128,12 @@ class Covid:
             try:
                 result[date[i]] = (int(_data[i]))
             except:
-                result[date[i]] = (int(_data[i+y].rstrip()))
+                try:
+                    result[date[i]] = (int(_data[i+y].rstrip()))
+                except:
+                    print(f"except: {date[i]}, {0}")
+                    result[date[i]] = 0
+
         return result
 
     def printList(self):
@@ -155,7 +164,7 @@ class Covid:
         plt.plot(range(len(area_buf.date)), [area_buf.active[key] for key in area_buf.date])
         plt.show()
 
-    def plotAreas(self, names, allIncluded=False, maxSubplots=9, ppm=False):
+    def plotAreas(self, names, allIncluded=False, maxSubplots=9, ppm=False, byAttribute=False):
         if allIncluded:
             name = names if isinstance(names, str) else names[0]
             names = [y.name for y in filter(lambda x: name in x.name, self.areas)]
@@ -222,12 +231,12 @@ class Covid:
         confirmed_buf = {k: 0 for k in _date}
         deaths_buf = {k: 0 for k in _date}
         recovered_buf = {k: 0 for k in _date}
-        for i in range(self.count):
+        for i in range(len(self.areas)):
             if self.europe in self.areas[i].attributes:
                 confirmed_buf = {key: (confirmed_buf[key] + self.areas[i].confirmed[key]) for key in _date}
                 deaths_buf = {key: (deaths_buf[key] + self.areas[i].deaths[key]) for key in _date}
                 recovered_buf = {key: (recovered_buf[key] + self.areas[i].recovered[key]) for key in _date}
-        area = Area(self.europe, self.head, confirmed_buf, deaths_buf, recovered_buf)
+        area = Area(self.europe, self.head, confirmed_buf, deaths_buf, recovered_buf, self.regionCount)
         area.calcActive()
         area.attributes.append("Continent")
         self._list([area])
@@ -242,7 +251,7 @@ class Covid:
                 confirmed_buf = {key: (confirmed_buf[key] + area_buf[i].confirmed[key]) for key in self.date}
                 deaths_buf = {key: (deaths_buf[key] + area_buf[i].deaths[key]) for key in self.date}
                 recovered_buf = {key: (recovered_buf[key] + area_buf[i].recovered[key]) for key in self.date}
-        area = Area(name, self.head, confirmed_buf, deaths_buf, recovered_buf)
+        area = Area(name, self.head, confirmed_buf, deaths_buf, recovered_buf, self.regionCount)
         area.calcActive()
         area.attributes.append(name)
         self._list([area])
@@ -260,12 +269,10 @@ w.createEurope()
 w.createRegion("China")
 w.createRegion("US")
 w.createRegion("Canada")
-w.plotAreas("China", True, 6)
-w.plotAreasPercent(["Poland", "Switzerland", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China",
-                    "China"], maxSubplots=6)
+w.plotAreas("Europe", True, 9)
+w.plotAreasPercent(["Poland", "Switzerland", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"], maxSubplots=9)
 w.plotAreas(["Poland", "Switzerland", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
-w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,",
-             "China"])
+#w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,", "China"])
 
 Poland = w.getArea("Poland")
 print(Poland.name + ": " + str(Poland.active))
