@@ -10,13 +10,10 @@ workDir = dir_path.split("Cov2020")[0]
 dataDir = "Covid19\\csse_covid_19_data\\csse_covid_19_time_series\\"
 workDir = f"{workDir}{dataDir}"
 
-print(workDir)
-
 confirmed = open(f"{workDir}time_series_19-covid-Confirmed.csv", "r")
 deaths = open(f"{workDir}time_series_19-covid-Deaths.csv", "r")
 recovered = open(f"{workDir}time_series_19-covid-Recovered.csv", "r")
 files = [confirmed.read().split("\n"), deaths.read().split("\n"), recovered.read().split("\n")]
-
 
 def delQuoteSign(_list):
     return np.append([_list[0].replace("\"", "") + _list[1].replace("\"", "")], _list[2:])
@@ -40,8 +37,20 @@ for lRow in data[1]:
     lenTable.append(len(lRow))
     index += 1
 
-europeList = open("Definitions\\europe.txt").read().split("\n")
-population = open("Definitions\\populations.txt").read().split("\n")
+try:
+    europeList = open("Definitions\\europe.txt").read().split("\n")
+    population = open("Definitions\\populations.txt").read().split("\n")
+except:workDir
+
+newDir = "C:\\Users\\rafal\\Documents\\GitHub\Cov2020\\Covid19\\"
+europeList = open(f"{newDir}Definitions\\europe.txt").read().split("\n")
+population = open(f"{newDir}Definitions\\populations.txt").read().split("\n")
+
+class GetData:
+    def __init__(self, ):
+        self.data = data
+        self.europeList = europeList
+        self.population = population
 
 ########################################################################################################################
 
@@ -131,7 +140,6 @@ class Covid:
                 try:
                     result[date[i]] = (int(_data[i+y].rstrip()))
                 except:
-                    print(f"except: {date[i]}, {0}")
                     result[date[i]] = 0
 
         return result
@@ -176,6 +184,7 @@ class Covid:
 
         i = ms + 1
         j = 0
+        plt.figure(figsize=(20, 10))
         for name in names:
             if i > ms:
                 count = _iter[j]
@@ -194,9 +203,9 @@ class Covid:
                 pop = list(filter(lambda x: popName in x.name, self.population))[0].population / 1000000
                 ylabel = "People per million"
 
-            try: area_buf = list(filter(lambda x: name is x.name, self.areas))[0]
+            try:
+                area_buf = list(filter(lambda x: name is x.name, self.areas))[0]
             except:
-                print(f"exception in {name}")
                 area_buf = list(filter(lambda x: name in x.name, self.areas))[0]
 
             plt.subplot(int(f"{v}{h}{i}"))
@@ -263,18 +272,18 @@ class Covid:
 
 ########################################################################################################################
 
-
-w = Covid(data)
+DATA = GetData()
+w = Covid(DATA.data)
 w.createEurope()
 w.createRegion("China")
 w.createRegion("US")
 w.createRegion("Canada")
-w.plotAreas("Europe", True, 9)
-w.plotAreasPercent(["Poland", "Switzerland", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"], maxSubplots=9)
-w.plotAreas(["Poland", "Switzerland", "Italy", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
+w.plotAreas(["Europe", "US", "China", "Italy"])
+w.plotAreasPercent(["Poland", "Switzerland", "Germany", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"], maxSubplots=9)
+w.plotAreas(["Poland", "Switzerland", "Germany", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
 #w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,", "China"])
 
-Poland = w.getArea("Poland")
-print(Poland.name + ": " + str(Poland.active))
-China = w.getArea("China")
-print(China.name + ": " + str(China.confirmed))
+# Poland = w.getArea("Poland")
+# print(Poland.name + ": " + str(Poland.active))
+# China = w.getArea("China")
+# print(China.name + ": " + str(China.confirmed))
