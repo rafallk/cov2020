@@ -37,14 +37,9 @@ for lRow in data[1]:
     lenTable.append(len(lRow))
     index += 1
 
-try:
-    europeList = open("Definitions\\europe.txt").read().split("\n")
-    population = open("Definitions\\populations.txt").read().split("\n")
-except:workDir
 
-newDir = "C:\\Users\\rafal\\Documents\\GitHub\Cov2020\\Covid19\\"
-europeList = open(f"{newDir}Definitions\\europe.txt").read().split("\n")
-population = open(f"{newDir}Definitions\\populations.txt").read().split("\n")
+europeList = open("Definitions\\europe.txt").read().split("\n")
+population = open("Definitions\\populations.txt").read().split("\n")
 
 class GetData:
     def __init__(self, ):
