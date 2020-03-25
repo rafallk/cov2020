@@ -184,7 +184,7 @@ class Covid:
         i = ms + 1
         j = 0
 
-        plt.figure(figsize=(16, 8))
+        plt.figure(figsize=(20, 12))
         for name in names:
 
             if i > ms:
@@ -196,7 +196,7 @@ class Covid:
                 if j > 1:
                     plt.legend()
                     plt.show()
-                    plt.figure(figsize=(16, 8))
+                    plt.figure(figsize=(20, 12))
             pop = 1
             f = self.PlotPoint
             ylabel = "People"
