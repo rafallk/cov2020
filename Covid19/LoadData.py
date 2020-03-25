@@ -38,8 +38,8 @@ for lRow in data[1]:
     index += 1
 
 
-europeList = open("Definitions\\europe.txt").read().split("\n")
-population = open("Definitions\\populations.txt").read().split("\n")
+europeList = open(f"{dir_path}\\Definitions\\europe.txt").read().split("\n")
+population = open(f"{dir_path}\\Definitions\\populations.txt").read().split("\n")
 
 class GetData:
     def __init__(self, ):
@@ -154,9 +154,10 @@ class Covid:
             printStr = f"{printStr}{printBuf}\n"
         print(printStr)
 
-    def getArea(self, name):
+    def getArea(self, name, ifPrint=False):
         result = list(filter(lambda x: name in x.name, self.areas))
-        self._list(result)
+        if ifPrint:
+            self._list(result)
         return result[0]
 
     def plotArea(self, name):
@@ -167,10 +168,13 @@ class Covid:
         plt.plot(range(len(area_buf.date)), [area_buf.active[key] for key in area_buf.date])
         plt.show()
 
-    def plotAreas(self, names, allIncluded=False, maxSubplots=9, ppm=False, byAttribute=False):
+    def plotAreas(self, names, allIncluded=False, maxSubplots=9, type="", byAttribute=False):
         if allIncluded:
             name = names if isinstance(names, str) else names[0]
             names = [y.name for y in filter(lambda x: name in x.name, self.areas)]
+
+        if names == "Europe":
+            names = europeList
 
         ms = maxSubplots
         count = len(names)
@@ -179,8 +183,10 @@ class Covid:
 
         i = ms + 1
         j = 0
-        plt.figure(figsize=(20, 10))
+
+        plt.figure(figsize=(16, 8))
         for name in names:
+
             if i > ms:
                 count = _iter[j]
                 h = math.ceil(math.sqrt(count))
@@ -190,32 +196,52 @@ class Covid:
                 if j > 1:
                     plt.legend()
                     plt.show()
+                    plt.figure(figsize=(16, 8))
             pop = 1
+            f = self.PlotPoint
             ylabel = "People"
-            if ppm:
+            if type == "ppm":
                 popName = name[:-1] if name[-1] == "," else name
                 popName = "United States" if popName == "US" else popName
                 pop = list(filter(lambda x: popName in x.name, self.population))[0].population / 1000000
                 ylabel = "People per million"
+                f = self.DivPop
+            elif type == "log":
+                f = self.LogPoint
 
             try:
                 area_buf = list(filter(lambda x: name is x.name, self.areas))[0]
             except:
-                area_buf = list(filter(lambda x: name in x.name, self.areas))[0]
+                try:
+                    area_buf = list(filter(lambda x: name in x.name, self.areas))[0]
+                except:
+                    #continue
+                    pass
 
             plt.subplot(int(f"{v}{h}{i}"))
-            plt.plot(range(len(area_buf.date)), [area_buf.confirmed[key]/pop for key in area_buf.date], label="confirmed")
-            plt.plot(range(len(area_buf.date)), [area_buf.recovered[key]/pop for key in area_buf.date], label="recovered")
-            plt.plot(range(len(area_buf.date)), [area_buf.deaths[key]/pop for key in area_buf.date], label="deaths")
-            plt.plot(range(len(area_buf.date)), [area_buf.active[key]/pop for key in area_buf.date], label="active")
+            plt.plot(range(len(area_buf.date)), [f(area_buf.confirmed, key, pop) for key in area_buf.date], label="confirmed")
+            plt.plot(range(len(area_buf.date)), [f(area_buf.recovered, key, pop) for key in area_buf.date], label="recovered")
+            plt.plot(range(len(area_buf.date)), [f(area_buf.deaths, key, pop) for key in area_buf.date], label="deaths")
+            plt.plot(range(len(area_buf.date)), [f(area_buf.active, key, pop) for key in area_buf.date], label="active")
             plt.ylabel(ylabel)
             plt.title(area_buf.name)
             i += 1
+
         plt.legend()
         plt.show()
 
+    def DivPop(self, data, *args):
+        return data[args[0]]/args[1]
+
+    def PlotPoint(self, data, *args):
+        return data[args[0]]
+
+    def LogPoint(self, data, *args):
+        point = data[args[0]]
+        return 0 if point == 0 else math.log(point)
+
     def plotAreasPercent(self, names, allIncluded=False, maxSubplots=9, ):
-        self.plotAreas(names, allIncluded, maxSubplots, True)
+        self.plotAreas(names, allIncluded, maxSubplots, "ppm")
 
 
 
@@ -229,7 +255,7 @@ class Covid:
             if self.europe in country.attributes:
                 print(country.name)
 
-    def createEurope(self):
+    def createEurope(self, ifPrint=False):
         _date = self.areas[0].date
         _len = len(_date)
         confirmed_buf = {k: 0 for k in _date}
@@ -243,10 +269,11 @@ class Covid:
         area = Area(self.europe, self.head, confirmed_buf, deaths_buf, recovered_buf, self.regionCount)
         area.calcActive()
         area.attributes.append("Continent")
-        self._list([area])
+        if ifPrint:
+            self._list([area])
         self.areas.append(area)
 
-    def createRegion(self, name):
+    def createRegion(self, name, ifPrint=False):
         area_buf = list(filter(lambda x: name in x.name, self.areas))
         confirmed_buf = {k: 0 for k in self.date}
         deaths_buf = {k: 0 for k in self.date}
@@ -258,7 +285,8 @@ class Covid:
         area = Area(name, self.head, confirmed_buf, deaths_buf, recovered_buf, self.regionCount)
         area.calcActive()
         area.attributes.append(name)
-        self._list([area])
+        if ifPrint:
+            self._list([area])
         self.areas.append(area)
 
     def getEurope(self):
@@ -273,9 +301,12 @@ w.createEurope()
 w.createRegion("China")
 w.createRegion("US")
 w.createRegion("Canada")
-w.plotAreas(["Europe", "US", "China", "Italy"])
-w.plotAreasPercent(["Poland", "Switzerland", "Germany", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"], maxSubplots=9)
-w.plotAreas(["Poland", "Switzerland", "Germany", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
+
+#w.plotAreas(["Europe", "US", "China", "Italy"], type="")
+# w.plotAreas(["Europe", "US", "China", "Italy"], type="log")
+w.plotAreas("Europe")
+# w.plotAreasPercent(["Poland", "Switzerland", "Germany", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
+# w.plotAreas(["Poland", "Switzerland", "Germany", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"], type="log")
 #w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,", "China"])
 
 # Poland = w.getArea("Poland")
