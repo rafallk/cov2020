@@ -10,9 +10,9 @@ workDir = dir_path.split("Cov2020")[0]
 dataDir = "Covid19\\csse_covid_19_data\\csse_covid_19_time_series\\"
 workDir = f"{workDir}{dataDir}"
 
-confirmed = open(f"{workDir}time_series_19-covid-Confirmed.csv", "r")
-deaths = open(f"{workDir}time_series_19-covid-Deaths.csv", "r")
-recovered = open(f"{workDir}time_series_19-covid-Recovered.csv", "r")
+confirmed = open(f"{workDir}time_series_covid19_confirmed_global.csv", "r")
+deaths = open(f"{workDir}time_series_covid19_deaths_global.csv", "r")
+recovered = open(f"{workDir}time_series_covid19_recovered_global.csv", "r")
 files = [confirmed.read().split("\n"), deaths.read().split("\n"), recovered.read().split("\n")]
 
 def delQuoteSign(_list):
@@ -113,13 +113,20 @@ class Covid:
         self.calcPopulation()
         for i in range(1, self.count):
             _name = inputData[0][i][:2]
-            _confirmed = self.toIntData(self.date, inputData[0][i][4:])
-            _deaths = self.toIntData(self.date, inputData[1][i][4:])
-            _recovered = self.toIntData(self.date, inputData[2][i][4:])
-            area = Area(_name, self.head, _confirmed, _deaths, _recovered, self.regionCount)
-            area.MarkAsEurope(area.name, europeList, self.europe)
-            self.areas.append(area)
-            self.regionCount += 1
+            if (_name[0] == "" and _name[1] == "United Kingdom"): # or _name[1] == "Canada":
+                _name[0] = ""
+            try:
+                _confirmed = self.toIntData(self.date, inputData[0][i][4:])
+                _deaths = self.toIntData(self.date, inputData[1][i][4:])
+                _recovered = self.toIntData(self.date, list(filter(lambda x: x[1] == _name[1] and x[0] == _name[0],
+                                                                   inputData[2]))[0][4:])
+
+                area = Area(_name, self.head, _confirmed, _deaths, _recovered, self.regionCount)
+                area.MarkAsEurope(area.name, europeList, self.europe)
+                self.areas.append(area)
+                self.regionCount += 1
+            except:
+                print(f"Input data Error {inputData[0][i][:2]}, name: {_name}")
 
     def calcPopulation(self):
         for region in population:
@@ -295,21 +302,4 @@ class Covid:
 
 ########################################################################################################################
 
-DATA = GetData()
-w = Covid(DATA.data)
-w.createEurope()
-w.createRegion("China")
-w.createRegion("US")
-w.createRegion("Canada")
 
-#w.plotAreas(["Europe", "US", "China", "Italy"], type="")
-# w.plotAreas(["Europe", "US", "China", "Italy"], type="log")
-w.plotAreas("Europe")
-# w.plotAreasPercent(["Poland", "Switzerland", "Germany", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"])
-# w.plotAreas(["Poland", "Switzerland", "Germany", "US", "China", "Europe", "Singapore", "Taiwan", "Hubei, China"], type="log")
-#w.plotAreas(["Czech", "France", "Spain", "Canada", "Japan", "Korea", "Hong Kong", "Madagascar", "United Kingdom,", "China"])
-
-# Poland = w.getArea("Poland")
-# print(Poland.name + ": " + str(Poland.active))
-# China = w.getArea("China")
-# print(China.name + ": " + str(China.confirmed))
